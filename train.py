@@ -1,24 +1,22 @@
 import time
-from time import sleep
-import tkinter
+
 import matplotlib
 
-from charlieenv import CharlieEnv, GetCharlieEnvClass
+from charlieenv import CharlieEnv
 from evaluatebob import evaluate
 from vectorizeenv import VectorizedClass
 
 matplotlib.use('TkAgg')
-from gym_minigrid.envs import EmptyEnv
-from gym_minigrid.wrappers import *
 from stable_baselines3 import PPO
-from bobenv import BobEnv, GetBobEnvClass
+from bobenv import GetBobEnvClass
 
 
 def just_bob():
-    start = time.time()
-
-    bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(25), 6), verbose=1).learn(100000)
-    evaluate(bob, 25, episodes=100)
+    for i in [100000, 500000, 1000000, 5000000]:
+        start = time.time()
+        bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(25), 6), verbose=0).learn(i)
+        end = time.time()
+        print(f"For {i} we took {end-start} and got {evaluate(bob, 25, episodes=100)}")
     exit()
 
     done = False
@@ -30,11 +28,12 @@ def just_bob():
         env.render()
 
 def charlie():
-    start = time.time()
-
-    bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(25), 6), verbose=1)
-    charli = PPO("MlpPolicy", CharlieEnv(bob, 1000, 25), verbose=1).learn(100000)
-    evaluate(charli.env.envs[0].bob, 25, episodes=100)
+    for i in [100000//25, 500000//25, 1000000//25, 5000000//25]:
+        start = time.time()
+        bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(10), 6), verbose=0, n_steps=1)
+        charli = PPO("MlpPolicy", CharlieEnv(bob, t=6, maxsize=20), verbose=1).learn(i)
+        end = time.time()
+        print(f"For {i} we took {end-start} and got {evaluate(bob, 25, episodes=100)}")
     exit()
 
     done = False
@@ -46,12 +45,27 @@ def charlie():
         env.render()
 
 def main():
+    """
+    start = time.time()
+
+    bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(25), 6), verbose=1)#.learn(100000)
+    #evaluate(bob, 25, episodes=100)
+
+
+    done = False
+    env = GetBobEnvClass(25)()
+    obs = env.reset()
+    while not done:
+        action = bob.predict(obs)
+        obs, rew, done, _ = env.step(action[0])
+        env.render()
     #env = BobEnv(5)
     #env.render()
    # sleep(1000)
 
-    #just_bob()
+    #just_bob()"""
     charlie()
 
 if __name__ == "__main__":
-    main()
+    #main()
+    charlie()

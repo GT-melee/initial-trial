@@ -10,34 +10,38 @@ class CharlieEnv(gym.Env):
     def __init__(self, bob, t, maxsize):
         self.bob = bob
         self.t = t
-        self.observation_space = gym.spaces.Box(0,8, shape=(t,), dtype=int) # scale rew/size
-        self.action_space = gym.spaces.Discrete(maxsize-3)
+        self.obs_factor = 4
+        self.observation_space = gym.spaces.Box(0,1, shape=(t//self.obs_factor,), dtype=float) # scale rew/size
+        self.action_space = gym.spaces.Discrete(maxsize-4)
 
     def reset(self):
-        return np.random.randint(0,8,(1000,))
+        return np.random.randint(0,1,(self.t//self.obs_factor,))
 
     def step(self, action: int):
-        class GetReward(BaseCallback):
-            def __init__(self):
-                super(GetReward, self).__init__()
-
-            def _on_step(self) -> bool:
-                # Convert np.bool to bool, otherwise callback() is False won't work
-                continue_training = bool(self.parent.best_mean_reward < self.reward_threshold)
-                if self.verbose > 0 and not continue_training:
-                    print(
-                        f"Stopping training because the mean reward {self.parent.best_mean_reward:.2f} "
-                        f" is above the threshold {self.reward_threshold}"
-                    )
-                return continue_training
-
-
-        env = VectorizedClass(GetBobEnvClass(action+3), 6)
+        action += 4
+        env = VectorizedClass(GetBobEnvClass(action), 6)
         self.bob.set_env(env)
-        a = evaluate(self.bob, action, 10)
-        self.bob = self.bob.learn(self.t)
-        b = evaluate(self.bob, action, 10)
-        return np.random.randint(0,8,(1000,)), b-a, False, {}
+        a = evaluate(self.bob, action, 5)
+
+        obssss = []
+        class Callback(BaseCallback):
+            def _on_step(self) -> bool:
+                pass
+            def _on_rollout_end(self):
+                x = self.model.rollout_buffer.rewards.tolist()[0]
+                obssss.extend(x)
+
+        self.bob = self.bob.learn(self.t, callback=Callback())#, callback=GetReward())
+
+        buffer = self.bob.rollout_buffer
+
+        obssss = np.array(obssss[:(self.t//self.obs_factor*self.obs_factor)])
+        fuck = obssss
+        fuck15 = fuck.reshape((self.obs_factor, self.t//self.obs_factor))
+        fuck2 = fuck15.mean(axis=0)
+
+        b = evaluate(self.bob, action, 5, verbose=True)
+        return fuck2, b-a, False, {}
 
 def GetCharlieEnvClass(bob, t, maxsize):
     def temp():
