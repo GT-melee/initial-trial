@@ -29,7 +29,7 @@ class _BobEnv(MiniGridEnv):
 
     def step(self, action):
         obs, rew, done, info = super(_BobEnv, self).step(action)
-
+        #print("b")
         return obs, self.size * rew, done, info
 
 

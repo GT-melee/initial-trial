@@ -28,12 +28,12 @@ def just_bob():
         env.render()
 
 def charlie():
-    for i in [100000//25, 500000//25, 1000000//25, 5000000//25]:
+    for i in [100000//6, 500000//6, 1000000//6, 5000000//6]:
         start = time.time()
         bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(10), 6), verbose=0, n_steps=1)
-        charli = PPO("MlpPolicy", CharlieEnv(bob, t=6, maxsize=20), verbose=1).learn(i)
+        #charli = PPO("MlpPolicy", CharlieEnv(bob, t=6, maxsize=10), verbose=0, n_steps=1000).learn(i)
         end = time.time()
-        print(f"For {i} we took {end-start} and got {evaluate(bob, 25, episodes=100)}")
+        print(f"For {i} we took {end-start} and got {evaluate(bob, 10, episodes=100)}")
     exit()
 
     done = False

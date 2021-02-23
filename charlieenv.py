@@ -11,17 +11,24 @@ class CharlieEnv(gym.Env):
         self.bob = bob
         self.t = t
         self.obs_factor = 4
-        self.observation_space = gym.spaces.Box(0,1, shape=(t//self.obs_factor,), dtype=float) # scale rew/size
+        self.observation_space = gym.spaces.Box(0,1, shape=(t,), dtype=float) # scale rew/size
         self.action_space = gym.spaces.Discrete(maxsize-4)
 
+        self.counter = 0
+
     def reset(self):
-        return np.random.randint(0,1,(self.t//self.obs_factor,))
+        return np.random.randint(0,1,(self.t,))
 
     def step(self, action: int):
+        """
+        print("c:", self.counter)
+        self.counter += 1
+        return np.random.randint(0, 1, (self.t,)), 0, False, {}"""
+
         action += 4
         env = VectorizedClass(GetBobEnvClass(action), 6)
         self.bob.set_env(env)
-        a = evaluate(self.bob, action, 5)
+        #a = evaluate(self.bob, action, 5)
 
         obssss = []
         class Callback(BaseCallback):
@@ -35,13 +42,16 @@ class CharlieEnv(gym.Env):
 
         buffer = self.bob.rollout_buffer
 
-        obssss = np.array(obssss[:(self.t//self.obs_factor*self.obs_factor)])
-        fuck = obssss
-        fuck15 = fuck.reshape((self.obs_factor, self.t//self.obs_factor))
-        fuck2 = fuck15.mean(axis=0)
+        obssss = np.array(obssss[:self.t])
+        #fuck = obssss
+        #fuck15 = fuck.reshape((self.obs_factor, self.t//self.obs_factor))
+        fuck2 =obssss# fuck15.mean(axis=0)
 
-        b = evaluate(self.bob, action, 5, verbose=True)
-        return fuck2, b-a, False, {}
+        #print("c:",self.counter)
+        #self.counter += 1
+
+       # b = evaluate(self.bob, action, 5, verbose=True)
+        return fuck2, obssss[-1]-obssss[0], False, {}
 
 def GetCharlieEnvClass(bob, t, maxsize):
     def temp():
