@@ -35,7 +35,7 @@ class CharlieEnv(gym.Env):
             def _on_step(self) -> bool:
                 pass
             def _on_rollout_end(self):
-                x = self.model.rollout_buffer.rewards.tolist()[0]
+                x = self.model.rollout_buffer.rewards.tolist()
                 obssss.extend(x)
 
         self.bob = self.bob.learn(self.t, callback=Callback())#, callback=GetReward())
@@ -45,13 +45,16 @@ class CharlieEnv(gym.Env):
         obssss = np.array(obssss[:self.t])
         #fuck = obssss
         #fuck15 = fuck.reshape((self.obs_factor, self.t//self.obs_factor))
-        fuck2 =obssss# fuck15.mean(axis=0)
+        fuck2 =obssss.mean(axis=1)# fuck15.mean(axis=0)
+        fuck3 = 0 if fuck2.max() == 0 else fuck2 / fuck2.max()
 
+
+        bminusa = obssss[-1].mean()-obssss[0].mean()
         #print("c:",self.counter)
         #self.counter += 1
 
        # b = evaluate(self.bob, action, 5, verbose=True)
-        return fuck2, obssss[-1]-obssss[0], False, {}
+        return fuck3, bminusa, False, {}
 
 def GetCharlieEnvClass(bob, t, maxsize):
     def temp():
