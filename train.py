@@ -14,9 +14,9 @@ from bobenv import GetBobEnvClass
 def just_bob():
     for i in [100000, 500000, 1000000, 5000000]:
         start = time.time()
-        bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(25), 6), verbose=0).learn(i)
+        bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(10), 6), verbose=1).learn(i)
         end = time.time()
-        print(f"For {i} we took {end-start} and got {evaluate(bob, 25, episodes=100)}")
+        print(f"For {i} we took {end-start} and got {evaluate(bob, 10, episodes=100)}")
     exit()
 
     done = False
@@ -28,10 +28,10 @@ def just_bob():
         env.render()
 
 def charlie():
-    for i in [100000//6, 500000//6, 1000000//6, 5000000//6]:
+    for i in [100000//12288, 500000//12288, 1000000//12288, 5000000//12288]:
         start = time.time()
-        bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(10), 6), verbose=0, n_steps=200)
-        charli = PPO("MlpPolicy", CharlieEnv(bob, t=200, maxsize=10), verbose=0, n_steps=1000).learn(i)
+        bob = PPO("CnnPolicy", VectorizedClass(GetBobEnvClass(10), 6), verbose=0)
+        charli = PPO("MlpPolicy", CharlieEnv(bob, t=200, maxsize=10), verbose=0, n_steps=1).learn(i)
         end = time.time()
         print(f"For {i} we took {end-start} and got {evaluate(bob, 10, episodes=100)}")
     exit()
@@ -68,4 +68,5 @@ def main():
 
 if __name__ == "__main__":
     #main()
-    charlie()
+    #charlie()
+    just_bob()
